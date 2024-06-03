@@ -1,0 +1,31 @@
+experiment:
+  name: "rayflow"
+  tracking_uri: "sqlite:///data/mlflow/runs.db"
+  artifact_location: "./data/mlflow/artifacts"
+
+# Set the registry server URI. This property is especially useful if you have a registry
+# server that’s different from the tracking server.
+model_registry:
+  registry_uri: "sqlite:///data/mlflow/registry.db"
+  # FIXME::REQUIRED: Specifies the name of the Registered Model to use when registering a trained
+  #                 model to the MLflow Model Registry.
+  model_name: "taxi_fare_regressor"
+
+# Override the default train / validation / test dataset split ratios
+SPLIT_RATIOS: [0.80, 0.10, 0.10]
+
+INGEST_CONFIG:
+  # For different options please read: https://github.com/mlflow/recipes-regression-template#ingest-step
+  using: custom
+  loader_method: load_data
+  location: "./data/raw/2023/yellow_taxi/yellow_tripdata_2023-01.parquet"
+
+INGEST_SCORING_CONFIG:
+  # For different options please read: https://github.com/mlflow/recipes-regression-template#batch-scoring
+  using: parquet
+  location: "./data/sample.parquet"
+
+PREDICT_OUTPUT_CONFIG:
+  # For different options please read: https://github.com/mlflow/recipes-regression-template#predict-step
+  using: parquet
+  location: "./data/sample_output.parquet"

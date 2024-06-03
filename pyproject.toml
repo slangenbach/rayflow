@@ -13,6 +13,7 @@ packages = [
 python = "^3.10"
 mlflow = "^2.13.1"
 ray = {extras = ["data", "serve", "train", "tune"], version = "^2.23.0"}
+tqdm = "^4.66.4"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.282"
@@ -26,6 +27,7 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["B", "D", "E", "F", "I", "S"]
+ignore = ["D212"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"]
