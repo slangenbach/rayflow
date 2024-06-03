@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "Rayflow"
+version = "0.0.1"
+description = "A whirlwind tour of Ray and MLflow recipes"
+authors = ["Stefan Langenbach <stefan@langenbach.online>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    {include = "rayflow"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+mlflow = "^2.13.1"
+ray = {extras = ["data", "serve", "train", "tune"], version = "^2.23.0"}
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.282"
+pytest = "^7.4.0"
+ipykernel = "^6.25.0"
+nbconvert = "^7.7.3"
+pre-commit = "^3.7.0"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["B", "D", "E", "F", "I", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+"__init__.py" = ["D104"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
