@@ -11,9 +11,6 @@ model_registry:
   #                 model to the MLflow Model Registry.
   model_name: "taxi_fare_regressor"
 
-# Override the default train / validation / test dataset split ratios
-SPLIT_RATIOS: [0.80, 0.10, 0.10]
-
 INGEST_CONFIG:
   # For different options please read: https://github.com/mlflow/recipes-regression-template#ingest-step
   using: custom
