@@ -6,10 +6,12 @@ from typing import Optional
 import pandas as pd
 import ray
 
+from rayflow.config import COLS_TO_LOAD
+
 logger = logging.getLogger(__name__)
 
 
-def load_data(file_path: str, cols_to_load: Optional[list[str]]) -> pd.DataFrame:
+def load_data(file_path: str, cols_to_load: Optional[list[str]] = None) -> pd.DataFrame:
     """
     Load data from a file or directory.
 
@@ -24,4 +26,5 @@ def load_data(file_path: str, cols_to_load: Optional[list[str]]) -> pd.DataFrame
 
     """
     logger.info("Loading data from: %s (using Ray)", file_path)
-    return ray.data.read_parquet(paths=file_path, columns=None).to_pandas()
+    # This is ugly, yet it is unclear how to pass an argument to a function using MLflow Recipes
+    return ray.data.read_parquet(paths=file_path, columns=COLS_TO_LOAD).to_pandas()

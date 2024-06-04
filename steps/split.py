@@ -41,4 +41,4 @@ def filter_data(df: pd.DataFrame) -> pd.Series:
         pd.Series: Filtered data
 
     """
-    return ray.data.from_pandas(df).filter(fn=lambda df: df["fare_amount"] > 0).to_pandas()
+    return df["fare_amount"] > 0

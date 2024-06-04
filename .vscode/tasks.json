@@ -4,15 +4,30 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Download file from dataset",
+            "type": "shell",
+            "command": "poetry run kaggle datasets download microize/nyc-taxi-dataset -f Dataset/2023/yellow_taxi/${input:fileName} -p ${workspaceFolder}/data/raw/2023/yellow_taxi",
+            "problemMatcher": []
+        },
+        {
             "label": "Unzip all zip archives",
             "type": "shell",
             "command": "find ${workspaceFolder}/data -type f -name \"*.zip\" | while read -r zipfile; do unzip -d \"$(dirname \"$zipfile\")\" \"$zipfile\" && rm \"$zipfile\"; done",
+            "problemMatcher": []
         },
         {
             "label": "Remove all zip archives",
             "type": "shell",
-            "command": "find ${workspaceFolder}/data -type f -name \"*.zip\" -delete"
-
+            "command": "find ${workspaceFolder}/data -type f -name \"*.zip\" -delete",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "fileName",
+            "type": "promptString",
+            "description": "Name of file to download",
+            "default": "yellow_tripdata_2023-01.parquet"
         }
     ]
 }

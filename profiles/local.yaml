@@ -6,9 +6,7 @@ experiment:
 # Set the registry server URI. This property is especially useful if you have a registry
 # server that’s different from the tracking server.
 model_registry:
-  registry_uri: "sqlite:///data/mlflow/registry.db"
-  # FIXME::REQUIRED: Specifies the name of the Registered Model to use when registering a trained
-  #                 model to the MLflow Model Registry.
+  # registry_uri: "sqlite:///data/mlflow/registry.db"
   model_name: "taxi_fare_regressor"
 
 INGEST_CONFIG:

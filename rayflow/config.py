@@ -1,6 +1,6 @@
 """Package-wide configuration."""
 
-COLS_TO_LOAD = ["passenger_count", "trip_distance", "RatecodeID", "payment_type", "total_amount"]
+COLS_TO_LOAD = ["passenger_count", "trip_distance", "RatecodeID", "payment_type", "fare_amount"]
 COLS_TO_DROP = [
     "VendorID",
     "tpep_pickup_datetime",

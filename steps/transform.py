@@ -4,30 +4,44 @@ import logging
 
 import pandas as pd
 import ray
-
-from rayflow.config import COLS_TO_DROP
+from ray.data.preprocessors import OneHotEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer
 
 logger = logging.getLogger(__name__)
 
-# https://docs.ray.io/en/latest/data/api/preprocessor.html#preprocessor-ref
-# https://docs.ray.io/en/latest/data/api/doc/ray.data.preprocessors.OneHotEncoder.html#ray.data.preprocessors.OneHotEncoder
+
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    return (
+        ray.data.from_pandas(df)
+        .map_batches(lambda df: df.dropna(), batch_format="pandas")
+        .map_batches(lambda df: df[df["trip_distance"] < 1000], batch_format="pandas")
+        # TODO: Move to split step as fare_amount is the target column and not included in the step
+        # .map_batches(lambda df: df[df["fare_amount"] > 0], batch_format="pandas")
+    ).to_pandas()
 
 
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Engineer features.
-
-    Args:
-    ----
-        df (pd.DataFrame): Processed DataFrame
-
-    Returns:
-    -------
-        pd.DataFrame: DataFrame with engineered features
-
-    """
-    return df.drop(columns=COLS_TO_DROP)
+def one_hot_encode_data(column_name: str) -> pd.DataFrame:
+    return OneHotEncoder([column_name])
 
 
-def transform_data(df):
-    return ray.data.from_pandas(df).map(engineer_features).to_pandas()
+def transform_data():
+    return (
+        Pipeline(
+            steps=[
+                ("clean_data", FunctionTransformer(clean_data, feature_names_out="one-to-one")),
+                (
+                    "encode_payments",
+                    FunctionTransformer(
+                        one_hot_encode_data, kw_args={"column_name": "payment_type"}
+                    ),
+                    (
+                        "encode_rate_code",
+                        FunctionTransformer(
+                            one_hot_encode_data, kw_args={"column_name": "RatecodeID"}
+                        ),
+                    ),
+                ),
+            ]
+        ),
+    )
