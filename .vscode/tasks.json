@@ -4,9 +4,21 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Create directories",
+            "type": "shell",
+            "command": "mkdir -p ${workspaceFolder}/data/raw/2023/yellow_taxi",
+            "problemMatcher": []
+        },
+        {
+            "label": "Download data",
+            "type": "shell",
+            "command": "kaggle datasets download microize/nyc-taxi-dataset -p ${workspaceFolder}/data/raw",
+            "problemMatcher": []
+        },
+        {
             "label": "Download file from dataset",
             "type": "shell",
-            "command": "poetry run kaggle datasets download microize/nyc-taxi-dataset -f Dataset/2023/yellow_taxi/${input:fileName} -p ${workspaceFolder}/data/raw/2023/yellow_taxi",
+            "command": "poetry run kaggle datasets download microize/nyc-taxi-dataset -f ${input:fileName} -p ${workspaceFolder}/data/raw/2023/yellow_taxi",
             "problemMatcher": []
         },
         {
@@ -27,7 +39,7 @@
             "id": "fileName",
             "type": "promptString",
             "description": "Name of file to download",
-            "default": "yellow_tripdata_2023-01.parquet"
+            "default": "Dataset/2023/yellow_taxi/yellow_tripdata_2023-01.parquet"
         }
     ]
 }
