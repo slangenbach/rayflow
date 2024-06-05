@@ -8,10 +8,11 @@ import ray
 logger = logging.getLogger(__name__)
 
 
-# Does not work with recipes, as they must a return a _single_ pandas series
 def split_data(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """
     Split data into train, validation and test datasets.
+
+    Does not work with recipes, as they must a return a single pandas series
 
     Args:
     ----
@@ -28,6 +29,29 @@ def split_data(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     }  # pyright: ignore[reportReturnType]
 
 
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean data by removing missing values and outliers.
+
+    Args:
+    ----
+        df (pd.DataFrame): Raw DataFrame
+
+    Returns:
+    -------
+        pd.DataFrame: Cleaned DataFrame
+
+    """
+    logger.info("Cleaning data")
+    return (
+        ray.data.from_pandas(df)
+        .map_batches(lambda df: df.dropna(), batch_format="pandas")
+        .map_batches(lambda df: df[df["fare_amount"] > 0], batch_format="pandas")
+        .map_batches(lambda df: df[df["trip_distance"] > 0], batch_format="pandas")
+        .map_batches(lambda df: df[df["trip_distance"] < 1000], batch_format="pandas")
+    ).to_pandas()
+
+
 def filter_data(df: pd.DataFrame) -> pd.Series:
     """
     Filter data based on a condition.
@@ -41,4 +65,4 @@ def filter_data(df: pd.DataFrame) -> pd.Series:
         pd.Series: Filtered data
 
     """
-    return df["fare_amount"] > 0
+    return (df["fare_amount"] > 0) & (df["trip_distance"] > 0)

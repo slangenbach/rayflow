@@ -1,47 +1,82 @@
 """Functions to process and transform data."""
 
 import logging
+from typing import Self
 
 import pandas as pd
 import ray
-from ray.data.preprocessors import OneHotEncoder
+from pandas import DataFrame
+from ray.data.preprocessors import OneHotEncoder, StandardScaler
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import FunctionTransformer
+
+from rayflow.config import init_ray
 
 logger = logging.getLogger(__name__)
+init_ray()
 
 
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    return (
-        ray.data.from_pandas(df)
-        .map_batches(lambda df: df.dropna(), batch_format="pandas")
-        .map_batches(lambda df: df[df["trip_distance"] < 1000], batch_format="pandas")
-        # TODO: Move to split step as fare_amount is the target column and not included in the step
-        # .map_batches(lambda df: df[df["fare_amount"] > 0], batch_format="pandas")
-    ).to_pandas()
+class RayEncoder(BaseEstimator, TransformerMixin):
+    """Sklearn-compatible one-hot encoder for Ray."""
+
+    def __init__(self, columns: list[str]) -> None:  # noqa: D107
+        super().__init__()
+        self.columns = columns
+        self.encoder = OneHotEncoder(columns=self.columns)
+
+    def fit(self, X: pd.DataFrame, y=None) -> Self:  # noqa: D102
+        data = ray.data.from_pandas(X)
+        self.encoder.fit(data)
+
+        return self
+
+    def transform(self, X: pd.DataFrame) -> DataFrame:  # noqa: D102
+        data = ray.data.from_pandas(X)
+        transformed_data = self.encoder.transform(data)
+
+        return transformed_data.to_pandas()
 
 
-def one_hot_encode_data(column_name: str) -> pd.DataFrame:
-    return OneHotEncoder([column_name])
+class RayScaler(BaseEstimator, TransformerMixin):
+    """Sklearn-compatible scaler for Ray."""
+
+    def __init__(self, columns: list[str]) -> None:  # noqa: D107
+        super().__init__()
+        self.columns = columns
+        self.scaler = StandardScaler(columns=self.columns)
+
+    def fit(self, X: pd.DataFrame, y=None) -> Self:  # noqa: D102
+        data = ray.data.from_pandas(X)
+        self.scaler.fit(data)
+
+        return self
+
+    def transform(self, X: pd.DataFrame) -> DataFrame:  # noqa: D102
+        data = ray.data.from_pandas(X)
+        transformed_data = self.scaler.transform(data)
+
+        return transformed_data.to_pandas()
 
 
-def transform_data():
-    return (
-        Pipeline(
-            steps=[
-                ("clean_data", FunctionTransformer(clean_data, feature_names_out="one-to-one")),
-                (
-                    "encode_payments",
-                    FunctionTransformer(
-                        one_hot_encode_data, kw_args={"column_name": "payment_type"}
-                    ),
-                    (
-                        "encode_rate_code",
-                        FunctionTransformer(
-                            one_hot_encode_data, kw_args={"column_name": "RatecodeID"}
+def transform_data() -> Pipeline:
+    """Create a pipeline to transform data."""
+    return Pipeline(
+        steps=[
+            (
+                "encoder",
+                ColumnTransformer(
+                    transformers=[
+                        ("payment_encoder", RayEncoder(columns=["payment_type"]), ["payment_type"]),
+                        ("ratecode_encoder", RayEncoder(columns=["RatecodeID"]), ["RatecodeID"]),
+                        (
+                            "trip_distance_scaler",
+                            RayScaler(columns=["trip_distance"]),
+                            ["trip_distance"],
                         ),
-                    ),
+                    ],
+                    remainder="passthrough",
                 ),
-            ]
-        ),
+            ),
+        ]
     )

@@ -12,10 +12,10 @@ steps:
     using: custom
     transformer_method: transform_data
   train:
-    using: "custom"
-    estimator_method: tbd
+    using: custom
+    estimator_method: train_model
   tune:
-    using: "custom"
+    using: custom
     tuner_method: tbd
   evaluate:
     validation_criteria:
